@@ -130,6 +130,34 @@ class KnowledgeBase(object):
         # Implementation goes here
         # Not required for the extra credit assignment
 
+    def kb_suppby(self, fr, currstr, indent):
+        currstr += indent + 'SUPPORTED BY\n'
+        entirestr = currstr
+        otherstr = ''
+        indent += '  '
+        if len(fr.supported_by) >= 1:
+            supporters = fr.supported_by[0]
+            for each in supporters:
+                if factq(each):
+                    currstr += indent + 'fact: ' + str(each.statement)
+                    if each.asserted:
+                        currstr += ' ASSERTED'
+                    currstr += '\n'
+                    newindent = indent + '  '
+                    morestr = self.kb_suppby(each, currstr, newindent)
+                if isinstance(each, lc.Rule):
+                    otherstr = indent + 'rule: ('
+                    for statement in each.lhs:
+                        otherstr += str(statement) 
+                    otherstr += ') -> ' + str(each.rhs)
+                    if each.asserted:
+                        otherstr += ' ASSERTED'
+                    otherstr += '\n'
+                    newindent = indent + '  '
+                    morestr = self.kb_suppby(each, otherstr, newindent)
+            entirestr = currstr + morestr
+        return entirestr
+
     def kb_explain(self, fact_or_rule):
         """
         Explain where the fact or rule comes from
@@ -142,7 +170,33 @@ class KnowledgeBase(object):
         """
         ####################################################
         # Student code goes here
-
+        if factq(fact_or_rule):
+            fact = self._get_fact(fact_or_rule)
+            if fact in self.facts:
+                fstr = 'fact: '
+                fstr += str(fact.statement)
+                fstr += '\n'
+                indent = '  '
+                entirestr = self.kb_suppby(fact, fstr, indent)
+            else:
+                entirestr = 'Fact is not in the KB'
+            return entirestr
+        elif isinstance(fact_or_rule, lc.Rule):
+            rule = fact_or_rule
+            if rule in self.rules:
+                rstr = 'rule: '
+                for statement in rule.lhs:
+                    rstr += str(statement) 
+                rstr += ' -> ' + str(rule.rhs)
+                if rule.asserted:
+                    rstr += ' ASSERTED'
+                rstr += '\n'
+                entirestr = self.kb_suppby(rule, rstr, indent)
+            else:
+                entirestr = 'Rule is not in the KB'
+            return entirestr
+        else:
+            return False
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
