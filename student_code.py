@@ -130,13 +130,16 @@ class KnowledgeBase(object):
         # Implementation goes here
         # Not required for the extra credit assignment
 
-    def kb_suppby(self, fr, currstr, indent):
+    def kb_suppby(self, fr, currstr, indent, original):
+        if isinstance(fr, lc.Rule) and fr.asserted == True :
+            indent = '  '
         currstr += indent + 'SUPPORTED BY\n'
         entirestr = currstr
         otherstr = ''
         indent += '  '
         if len(fr.supported_by) >= 1:
             supporters = fr.supported_by[0]
+            #print(supporters[1])
             for each in supporters:
                 if factq(each):
                     currstr += indent + 'fact: ' + str(each.statement)
@@ -144,17 +147,18 @@ class KnowledgeBase(object):
                         currstr += ' ASSERTED'
                     currstr += '\n'
                     newindent = indent + '  '
-                    morestr = self.kb_suppby(each, currstr, newindent)
+                    morestr = self.kb_suppby(each, currstr, newindent, original)
                 if isinstance(each, lc.Rule):
                     otherstr = indent + 'rule: ('
+                    addcoma = ', '
                     for statement in each.lhs:
-                        otherstr += str(statement) 
-                    otherstr += ') -> ' + str(each.rhs)
+                        otherstr += str(statement) + addcoma
+                    otherstr = otherstr[:-2] + ') -> ' + str(each.rhs)
                     if each.asserted:
                         otherstr += ' ASSERTED'
                     otherstr += '\n'
                     newindent = indent + '  '
-                    morestr = self.kb_suppby(each, otherstr, newindent)
+                    morestr = self.kb_suppby(each, otherstr, newindent, original)
             entirestr = currstr + morestr
         return entirestr
 
@@ -172,14 +176,16 @@ class KnowledgeBase(object):
         # Student code goes here
         if factq(fact_or_rule):
             fact = self._get_fact(fact_or_rule)
+            original = fact
             if fact in self.facts:
                 fstr = 'fact: '
                 fstr += str(fact.statement)
                 fstr += '\n'
                 indent = '  '
-                entirestr = self.kb_suppby(fact, fstr, indent)
+                entirestr = self.kb_suppby(fact, fstr, indent, original)
             else:
                 entirestr = 'Fact is not in the KB'
+            print(entirestr)
             return entirestr
         elif isinstance(fact_or_rule, lc.Rule):
             rule = fact_or_rule
@@ -191,9 +197,10 @@ class KnowledgeBase(object):
                 if rule.asserted:
                     rstr += ' ASSERTED'
                 rstr += '\n'
-                entirestr = self.kb_suppby(rule, rstr, indent)
+                entirestr = self.kb_suppby(rule, rstr, indent, original)
             else:
                 entirestr = 'Rule is not in the KB'
+            print(entirestr)
             return entirestr
         else:
             return False
